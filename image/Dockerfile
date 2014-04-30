@@ -8,6 +8,7 @@ ADD . /build
 RUN /build/prepare.sh && \
 	/build/system_services.sh && \
 	/build/utilities.sh && \
+	/build/enable_rsa_key && \
 	/build/cleanup.sh
 
 CMD ["/sbin/my_init"]

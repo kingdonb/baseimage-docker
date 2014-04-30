@@ -37,18 +37,6 @@ index 0381c70..12dc832 100644
  		echo "SSHing into $$IP" && \
 -		ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i image/insecure_key root@$$IP
 +		ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@$$IP
-diff --git a/image/Dockerfile b/image/Dockerfile
-index eb65ec3..f0dad19 100644
---- a/image/Dockerfile
-+++ b/image/Dockerfile
-@@ -8,6 +8,7 @@ ADD . /build
- RUN /build/prepare.sh && \
- 	/build/system_services.sh && \
- 	/build/utilities.sh && \
-+	/build/enable_rsa_key && \
- 	/build/cleanup.sh
- 
- CMD ["/sbin/my_init"]
 diff --git a/image/enable_insecure_key b/image/enable_insecure_key
 deleted file mode 100755
 index f8c9942..0000000
@@ -203,32 +191,6 @@ index c938868..0000000
 +++ /dev/null
 @@ -1 +0,0 @@
 -ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDVmzBG5v7cO9IScGLIzlhGlHNFhXzy87VfaPzru7qnIIdQ1e9FEKvtqEws8hVixnCUdviwX5lvcMk4Ef4Tbrmj3dyF0zFtYbjiTSyl/XQlF68DQlc2sTAdHy96wJHvh7ky511tKJzzyWwSqeef4WjeVK28TqcGnq1up0S7saFO0dJh6OfDAg2cDmhyweR3VgT0vZJyrDV7hte95MBCdK+Gp7fdCyEZcWm3S1DBFaeBqHzzt/Y/njAVKbYL9TIVPum8iMg0rMiLi9ShfP+dT5Xud5Oa3dcN2OWhiDfJw5pfhFJWd44cJ/uGRwQpvNs/PNKsYABhgLlTMUH4iawhu1Xb baseimage-docker-insecure-key
-diff --git a/image/prepare.sh b/image/prepare.sh
-index a44937b..1715e8b 100755
---- a/image/prepare.sh
-+++ b/image/prepare.sh
-@@ -3,6 +3,12 @@ set -e
- source /build/buildconfig
- set -x
- 
-+## Speed up repeat downloads
-+$minimal_apt_get_install squid-deb-proxy-client
-+echo 'Acquire::http::Proxy "http://squid.trusty.dev.docker:8000/";' > /etc/apt/apt.conf.d/30manualproxy
-+#echo 'Acquire::http::Proxy "http://192.168.20.62:8000/";' > /etc/apt/apt.conf.d/30manualproxy
-+rm /etc/apt/apt.conf.d/30autoproxy
-+
- ## Enable Ubuntu Universe.
- echo deb http://archive.ubuntu.com/ubuntu precise main universe > /etc/apt/sources.list
- echo deb http://archive.ubuntu.com/ubuntu precise-updates main universe >> /etc/apt/sources.list
-@@ -18,7 +24,7 @@ ln -sf /bin/true /sbin/initctl
- 
- ## Upgrade all packages.
- echo "initscripts hold" | dpkg --set-selections
--apt-get upgrade -y --no-install-recommends
-+apt-get dist-upgrade -y --no-install-recommends
- 
- ## Fix locale.
- $minimal_apt_get_install language-pack-en
 diff --git a/image/system_services.sh b/image/system_services.sh
 index af3f5e5..8bf0142 100755
 --- a/image/system_services.sh
