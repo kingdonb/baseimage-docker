@@ -1,5 +1,5 @@
-FROM ubuntu:12.04
-MAINTAINER Phusion <info@phusion.nl>
+FROM ubuntu:13.10
+MAINTAINER Kingdon <yebyen@gmail.com>
 
 ENV HOME /root
 RUN mkdir /build
