@@ -1,0 +1,22 @@
+From d2b0ed27222f3fdff41c43b2cfa2613f2d98df4f Mon Sep 17 00:00:00 2001
+From: Kingdon Barrett <kbarrett@metrixmatrix.com>
+Date: Tue, 25 Feb 2014 16:24:55 -0500
+Subject: [PATCH 1/7] syslog-ng can fail after a container is committed
+
+---
+ image/runit/syslog-ng | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/image/runit/syslog-ng b/image/runit/syslog-ng
+index f450b4b..161e4cc 100755
+--- a/image/runit/syslog-ng
++++ b/image/runit/syslog-ng
+@@ -1,4 +1,5 @@
+ #!/bin/sh
++if [ ! -S /dev/log ]; then rm -f /dev/log; fi
+ set -e
+ 
+ SYSLOGNG_OPTS=""
+-- 
+1.9.1
+

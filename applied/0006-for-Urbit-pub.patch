@@ -1,0 +1,23 @@
+From 46940355072acdc008171581fb9c784cadcdfb88 Mon Sep 17 00:00:00 2001
+From: Kingdon Barrett <yebyen@gmail.com>
+Date: Wed, 19 Mar 2014 18:36:21 -0400
+Subject: [PATCH 6/7] for Urbit pub
+
+---
+ image/Dockerfile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/image/Dockerfile b/image/Dockerfile
+index c38d84e..c6a96b7 100644
+--- a/image/Dockerfile
++++ b/image/Dockerfile
+@@ -1,5 +1,5 @@
+ FROM ubuntu:13.10
+-MAINTAINER Phusion <info@phusion.nl>
++MAINTAINER Kingdon <yebyen@gmail.com>
+ 
+ ENV HOME /root
+ RUN mkdir /build
+-- 
+1.9.1
+

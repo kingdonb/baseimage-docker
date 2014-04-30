@@ -1,0 +1,31 @@
+From 9a9a4d3be3dc9afb71e8b3235ff8aa113fb972f0 Mon Sep 17 00:00:00 2001
+From: Kingdon Barrett <yebyen@gmail.com>
+Date: Wed, 19 Mar 2014 18:39:42 -0400
+Subject: [PATCH 7/7] no proxy available
+
+---
+ image/prepare.sh | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/image/prepare.sh b/image/prepare.sh
+index 8a69efe..f98bad9 100755
+--- a/image/prepare.sh
++++ b/image/prepare.sh
+@@ -9,11 +9,11 @@ echo deb http://archive.ubuntu.com/ubuntu trusty-updates main universe >> /etc/a
+ apt-get update
+ 
+ ## Speed up repeat downloads
+-$minimal_apt_get_install squid-deb-proxy-client
++#$minimal_apt_get_install squid-deb-proxy-client
+ #echo 'Acquire::http::Proxy "http://squid.trusty.dev.docker:8000/";' > /etc/apt/apt.conf.d/30manualproxy
+-echo 'Acquire::http::Proxy "http://192.168.20.62:8000/";' > /etc/apt/apt.conf.d/30manualproxy
++#echo 'Acquire::http::Proxy "http://192.168.20.62:8000/";' > /etc/apt/apt.conf.d/30manualproxy
+ #echo 'Acquire::http::Proxy "http://127.0.0.1:8000/";' > /etc/apt/apt.conf.d/30manualproxy
+-rm /etc/apt/apt.conf.d/30autoproxy
++#rm /etc/apt/apt.conf.d/30autoproxy
+ 
+ ## Install HTTPS support for APT.
+ $minimal_apt_get_install apt-transport-https
+-- 
+1.9.1
+

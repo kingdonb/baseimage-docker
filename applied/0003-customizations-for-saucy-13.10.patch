@@ -1,0 +1,58 @@
+From e004456e712b8651088cb2e5e310f3402b531098 Mon Sep 17 00:00:00 2001
+From: Kingdon Barrett <kbarrett@metrixmatrix.com>
+Date: Fri, 7 Mar 2014 18:33:39 +0000
+Subject: [PATCH 3/7] customizations for saucy/13.10
+
+---
+ image/Dockerfile               | 2 +-
+ image/config/syslog_ng_default | 2 +-
+ image/my_init                  | 4 ++--
+ image/prepare.sh               | 4 ++--
+ image/setuser                  | 2 +-
+ 5 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/image/Dockerfile b/image/Dockerfile
+index f0dad19..c38d84e 100644
+--- a/image/Dockerfile
++++ b/image/Dockerfile
+@@ -1,4 +1,4 @@
+-FROM ubuntu:12.04
++FROM ubuntu:13.10
+ MAINTAINER Phusion <info@phusion.nl>
+ 
+ ENV HOME /root
+diff --git a/image/config/syslog_ng_default b/image/config/syslog_ng_default
+index 7161dbc..74dce64 100644
+--- a/image/config/syslog_ng_default
++++ b/image/config/syslog_ng_default
+@@ -10,4 +10,4 @@
+ 
+ # Command line options to syslog-ng
+ # We set --default-modules because of https://github.com/phusion/baseimage-docker/pull/7.
+-SYSLOGNG_OPTS="--no-caps --default-modules=affile,afprog,afsocket,afuser,basicfuncs,csvparser,dbparser,syslogformat"
++SYSLOGNG_OPTS="--no-caps"
+diff --git a/image/my_init b/image/my_init
+index ddec563..0e2c4f6 100755
+--- a/image/my_init
++++ b/image/my_init
+@@ -1,5 +1,5 @@
+-#!/usr/bin/python2 -u
+-import os, os.path, sys, stat, signal, errno, argparse, time, json, re, posixfile
++#!/usr/bin/python3 -u
++import os, os.path, sys, stat, signal, errno, argparse, time, json, re
+ 
+ KILL_PROCESS_TIMEOUT = 5
+ KILL_ALL_PROCESSES_TIMEOUT = 5
+diff --git a/image/setuser b/image/setuser
+index f841bbe..73ec53f 100755
+--- a/image/setuser
++++ b/image/setuser
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python2
++#!/usr/bin/python3
+ import sys, os, pwd
+ 
+ if len(sys.argv) < 3:
+-- 
+1.9.1
+

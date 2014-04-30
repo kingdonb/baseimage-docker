@@ -1,0 +1,31 @@
+From c5767c564998cc5bf96e2ba770e3f808aa39eaee Mon Sep 17 00:00:00 2001
+From: Kingdon Barrett <kbarrett@metrixmatrix.com>
+Date: Fri, 7 Mar 2014 19:35:03 +0000
+Subject: [PATCH 5/7] take advantage of proxy on bard
+
+---
+ image/prepare.sh | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/image/prepare.sh b/image/prepare.sh
+index 1d9b57f..8a69efe 100755
+--- a/image/prepare.sh
++++ b/image/prepare.sh
+@@ -9,13 +9,9 @@ echo deb http://archive.ubuntu.com/ubuntu trusty-updates main universe >> /etc/a
+ apt-get update
+ 
+ ## Speed up repeat downloads
+-$minimal_apt_get_install squid-deb-proxy
+-echo "skype" >> /etc/squid-deb-proxy/pkg-blacklist.d/10-default
+-/build/runit/squid-deb-proxy &
+-sleep 5
+ $minimal_apt_get_install squid-deb-proxy-client
+ #echo 'Acquire::http::Proxy "http://squid.trusty.dev.docker:8000/";' > /etc/apt/apt.conf.d/30manualproxy
+-#echo 'Acquire::http::Proxy "http://192.168.20.62:8000/";' > /etc/apt/apt.conf.d/30manualproxy
++echo 'Acquire::http::Proxy "http://192.168.20.62:8000/";' > /etc/apt/apt.conf.d/30manualproxy
+ #echo 'Acquire::http::Proxy "http://127.0.0.1:8000/";' > /etc/apt/apt.conf.d/30manualproxy
+ rm /etc/apt/apt.conf.d/30autoproxy
+ 
+-- 
+1.9.1
+

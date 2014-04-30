@@ -1,0 +1,76 @@
+From e55137142b36e01b19bf28cc878327c4a83e9bbb Mon Sep 17 00:00:00 2001
+From: Kingdon Barrett <kbarrett@metrixmatrix.com>
+Date: Fri, 7 Mar 2014 18:42:17 +0000
+Subject: [PATCH 4/7] customizations for trusty/14.04
+
+and a local squid-deb-proxy
+---
+ image/prepare.sh            | 17 +++++++++++------
+ image/runit/squid-deb-proxy |  6 ++++++
+ image/system_services.sh    |  4 ++++
+ 3 files changed, 21 insertions(+), 6 deletions(-)
+ create mode 100644 image/runit/squid-deb-proxy
+
+diff --git a/image/prepare.sh b/image/prepare.sh
+index fbe5189..1d9b57f 100755
+--- a/image/prepare.sh
++++ b/image/prepare.sh
+@@ -3,17 +3,22 @@ set -e
+ source /build/buildconfig
+ set -x
+ 
++## Enable Ubuntu Universe.
++echo deb http://archive.ubuntu.com/ubuntu trusty main universe > /etc/apt/sources.list
++echo deb http://archive.ubuntu.com/ubuntu trusty-updates main universe >> /etc/apt/sources.list
++apt-get update
++
+ ## Speed up repeat downloads
++$minimal_apt_get_install squid-deb-proxy
++echo "skype" >> /etc/squid-deb-proxy/pkg-blacklist.d/10-default
++/build/runit/squid-deb-proxy &
++sleep 5
+ $minimal_apt_get_install squid-deb-proxy-client
+-echo 'Acquire::http::Proxy "http://squid.trusty.dev.docker:8000/";' > /etc/apt/apt.conf.d/30manualproxy
++#echo 'Acquire::http::Proxy "http://squid.trusty.dev.docker:8000/";' > /etc/apt/apt.conf.d/30manualproxy
+ #echo 'Acquire::http::Proxy "http://192.168.20.62:8000/";' > /etc/apt/apt.conf.d/30manualproxy
++#echo 'Acquire::http::Proxy "http://127.0.0.1:8000/";' > /etc/apt/apt.conf.d/30manualproxy
+ rm /etc/apt/apt.conf.d/30autoproxy
+ 
+-## Enable Ubuntu Universe.
+-echo deb http://archive.ubuntu.com/ubuntu saucy main universe > /etc/apt/sources.list
+-echo deb http://archive.ubuntu.com/ubuntu saucy-updates main universe >> /etc/apt/sources.list
+-apt-get update
+-
+ ## Install HTTPS support for APT.
+ $minimal_apt_get_install apt-transport-https
+ 
+diff --git a/image/runit/squid-deb-proxy b/image/runit/squid-deb-proxy
+new file mode 100644
+index 0000000..44c99d9
+--- /dev/null
++++ b/image/runit/squid-deb-proxy
+@@ -0,0 +1,6 @@
++#!/bin/sh
++. /usr/share/squid-deb-proxy/init-common.sh
++
++pre_start
++exec /usr/sbin/squid3 -N -f /etc/squid-deb-proxy/squid-deb-proxy.conf
++#post_start
+diff --git a/image/system_services.sh b/image/system_services.sh
+index 8bf0142..d1f2085 100755
+--- a/image/system_services.sh
++++ b/image/system_services.sh
+@@ -22,6 +22,10 @@ cp /build/runit/syslog-ng /etc/service/syslog-ng/run
+ mkdir -p /var/lib/syslog-ng
+ cp /build/config/syslog_ng_default /etc/default/syslog-ng
+ 
++## Install squid-deb-proxy
++mkdir -p /etc/service/squid-deb-proxy
++cp /build/runit/squid-deb-proxy /etc/service/squid-deb-proxy/run
++
+ ## Install logrotate.
+ $minimal_apt_get_install logrotate
+ 
+-- 
+1.9.1
+

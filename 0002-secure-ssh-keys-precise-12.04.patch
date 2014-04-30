@@ -1,0 +1,254 @@
+From 3161513827bfdde7efa544f1eee92d610a315f80 Mon Sep 17 00:00:00 2001
+From: Kingdon Barrett <kbarrett@metrixmatrix.com>
+Date: Fri, 7 Mar 2014 18:26:46 +0000
+Subject: [PATCH 2/7] customizations for precise/12.04
+
+---
+ Makefile                  |  3 +--
+ image/Dockerfile          |  1 +
+ image/enable_insecure_key | 30 ------------------------------
+ image/enable_rsa_key      | 32 ++++++++++++++++++++++++++++++++
+ image/id_rsa.pub          |  2 ++
+ image/insecure_key        | 27 ---------------------------
+ image/insecure_key.ppk    | 26 --------------------------
+ image/insecure_key.pub    |  1 -
+ image/prepare.sh          |  8 +++++++-
+ image/system_services.sh  |  9 ++++-----
+ 10 files changed, 47 insertions(+), 92 deletions(-)
+ delete mode 100755 image/enable_insecure_key
+ create mode 100755 image/enable_rsa_key
+ create mode 100644 image/id_rsa.pub
+ delete mode 100644 image/insecure_key
+ delete mode 100644 image/insecure_key.ppk
+ delete mode 100644 image/insecure_key.pub
+
+diff --git a/Makefile b/Makefile
+index 0381c70..12dc832 100644
+--- a/Makefile
++++ b/Makefile
+@@ -20,9 +20,8 @@ release: test tag_latest
+ 	@echo "*** Don't forget to create a tag. git tag rel-$(VERSION) && git push origin rel-$(VERSION)"
+ 
+ ssh:
+-	chmod 600 image/insecure_key.pub
+ 	@ID=$$(docker ps | grep -F "$(NAME):$(VERSION)" | awk '{ print $$1 }') && \
+ 		if test "$$ID" = ""; then echo "Container is not running."; exit 1; fi && \
+ 		IP=$$(docker inspect $$ID | grep IPAddr | sed 's/.*: "//; s/".*//') && \
+ 		echo "SSHing into $$IP" && \
+-		ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i image/insecure_key root@$$IP
++		ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@$$IP
+diff --git a/image/Dockerfile b/image/Dockerfile
+index eb65ec3..f0dad19 100644
+--- a/image/Dockerfile
++++ b/image/Dockerfile
+@@ -8,6 +8,7 @@ ADD . /build
+ RUN /build/prepare.sh && \
+ 	/build/system_services.sh && \
+ 	/build/utilities.sh && \
++	/build/enable_rsa_key && \
+ 	/build/cleanup.sh
+ 
+ CMD ["/sbin/my_init"]
+diff --git a/image/enable_insecure_key b/image/enable_insecure_key
+deleted file mode 100755
+index f8c9942..0000000
+--- a/image/enable_insecure_key
++++ /dev/null
+@@ -1,30 +0,0 @@
+-#!/bin/bash
+-set -e
+-
+-AUTHORIZED_KEYS=/root/.ssh/authorized_keys
+-
+-if [[ -e "$AUTHORIZED_KEYS" ]] && grep -q baseimage-docker-insecure-key "$AUTHORIZED_KEYS"; then
+-	echo "Insecure key has already been added to $AUTHORIZED_KEYS."
+-else
+-	DIR=`dirname "$AUTHORIZED_KEYS"`
+-	echo "Creating directory $DIR..."
+-	mkdir -p "$DIR"
+-	chmod 700 "$DIR"
+-	chown root:root "$DIR"
+-	echo "Editing $AUTHORIZED_KEYS..."
+-	cat /etc/insecure_key.pub >> "$AUTHORIZED_KEYS"
+-	echo "Success: insecure key has been added to $AUTHORIZED_KEYS"
+-	cat <<-EOF
+-
+-		+------------------------------------------------------------------------------+
+-		| Insecure SSH key installed                                                   |
+-		|                                                                              |
+-		| DO NOT expose port 22 on the Internet unless you know what you are doing!    |
+-		|                                                                              |
+-		| Use the private key below to connect with user root                         |
+-		+------------------------------------------------------------------------------+
+-
+-	EOF
+-	cat /etc/insecure_key
+-	echo -e "\n\n"
+-fi
+diff --git a/image/enable_rsa_key b/image/enable_rsa_key
+new file mode 100755
+index 0000000..a4fca67
+--- /dev/null
++++ b/image/enable_rsa_key
+@@ -0,0 +1,32 @@
++#!/bin/bash
++set -e
++
++AUTHORIZED_KEYS=/root/.ssh/authorized_keys
++
++if [[ -e "$AUTHORIZED_KEYS" ]] && grep -q kbarrett@dev "$AUTHORIZED_KEYS"; then
++	echo "kbarrett@dev key has already been added to $AUTHORIZED_KEYS."
++else
++	DIR=`dirname "$AUTHORIZED_KEYS"`
++	echo "Creating directory $DIR..."
++	mkdir -p "$DIR"
++	chmod 700 "$DIR"
++	chown root:root "$DIR"
++	echo "Editing $AUTHORIZED_KEYS..."
++	cat /etc/kbarrett_key.pub >> "$AUTHORIZED_KEYS"
++	echo "Success: kbarrett@dev key has been added to $AUTHORIZED_KEYS"
++	:<<BEGIN
++	cat <<-EOF
++
++		+------------------------------------------------------------------------------+
++		| Insecure SSH key installed                                                   |
++		|                                                                              |
++		| DO NOT expose port 22 on the Internet unless you know what you are doing!    |
++		|                                                                              |
++		| Use the private key below to connect with user root                         |
++		+------------------------------------------------------------------------------+
++
++	EOF
++BEGIN
++	#cat /etc/insecure_key
++	#echo -e "\n\n"
++fi
+diff --git a/image/id_rsa.pub b/image/id_rsa.pub
+new file mode 100644
+index 0000000..c38ab4c
+--- /dev/null
++++ b/image/id_rsa.pub
+@@ -0,0 +1,2 @@
++ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDaoHUWFVa2GAI+ZP2eBklteGrWF87QkLQ8kItT1vfIxJSvYmNQLKPhhA0tSJ6EdXETZZ6A3FtU7mBcnncyPTWrwvxF2W1AFMGUH3i9iVRQGkqeI0FLeyoMAP1vY/bpcx0qUX0iqWHTEoKbkmqn5JOaDfWzdhPuIlfxRd4Uxozl0Q== Kingdon@vernon
++ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC05TbGlY+FPEasL5JiQZqV6Tl7qGcRdMMI/qIBY2AmS/u8C5mPc/C/aybgyblI1xTAPcI2v0XYRi8PvB06BvZEd5RuOgJAAx+DSQRVIzD7eF1oXlIXW6V8Oi1SMihCPTxbQuBtJMtbV50Z5/9cb6xt59lZICmd/yQSNh9DhCB/AWLN5gj/ddHYqmpM+mok0kRPpoqaXhyfVMA+0Fc5RYCQycmnuvvZszhjK8vbbTuor3TvhfqOcMYJzYp5XPQ3xG05EWhPBjdyW02/QQ+sNL61wMilz9V/GDOEb8jQ6/vOH6BQcE/kWQeAut7j/L7Y6YsOzYtCRMHeagnBzSYvtuf7 kbarrett@dev
+diff --git a/image/insecure_key b/image/insecure_key
+deleted file mode 100644
+index 36498f6..0000000
+--- a/image/insecure_key
++++ /dev/null
+@@ -1,27 +0,0 @@
+------BEGIN RSA PRIVATE KEY-----
+-MIIEpQIBAAKCAQEA1ZswRub+3DvSEnBiyM5YRpRzRYV88vO1X2j867u6pyCHUNXv
+-RRCr7ahMLPIVYsZwlHb4sF+Zb3DJOBH+E265o93chdMxbWG44k0spf10JRevA0JX
+-NrEwHR8vesCR74e5MuddbSic88lsEqnnn+Fo3lStvE6nBp6tbqdEu7GhTtHSYejn
+-wwINnA5ocsHkd1YE9L2Scqw1e4bXveTAQnSvhqe33QshGXFpt0tQwRWngah887f2
+-P54wFSm2C/UyFT7pvIjINKzIi4vUoXz/nU+V7neTmt3XDdjloYg3ycOaX4RSVneO
+-HCf7hkcEKbzbPzzSrGAAYYC5UzFB+ImsIbtV2wIDAQABAoIBAQCjROxgtX2Gft7y
+-Ix8Ol9IXmK6HLCI2XZt7ovb3hFWGGzHy0qMBql2P2Tzoed1o038Hq+woe9n+uTnE
+-dtQ6rD6PByzgyW2VSsWTjCOdeJ5HH9Qw7ItXDZZWHBkhfYHOkXI4e2oI3qshGAtY
+-NLALn7KVhioJriCyyaSM2KOLx5khcY+EJ1inQfwQJKqPGsdKc72liz07T8ifRj+m
+-NLKtwrxlK3IXYfIdgLp/1pCKdrC80DhprMsD4xvNgq4pCR9jd4FoqM9t/Up5ppTm
+-+p6A/bDwdIPh6cFFeyMP+G3+bTlW1Gg7RLoNCc6qh53WWVgEOQqdLHcQ8Ge4RLmb
+-wLUmnRuRAoGBAPfXYfjpPZi8rPIQpux13Bs7xaS1/Fa9WqrEfrPptFdUVHeFCGY8
+-qOUVewPviHdbs0nB71Ynk9/e96agFYijQdqTQzVnpYI4i8GiGk5gPMiB2UYeJ/HZ
+-mIB3jtWyf6Z/GO0hJ1a6mX0XD3zJGNqFaiwqaYgdO1Fwh9gcH3O2lHyjAoGBANyj
+-TGDBYHpxPu6uKcGreLd0SgO61PEj7aOSNfrBB2PK83A+zjZCFZRIWqjfrkxGG6+a
+-2WuHbEHuCGvu2V5juHYxbAD/38iV/lQl/2xyvN1eR/baE3US06qn6idxjnmeNZDy
+-DelAx1RGuEvLX1TNAzDTxBwYyzH3W2RpKAUAD11pAoGAN38YJhd8Pn5JL68A4cQG
+-dGau/BHwHjAqZEC5qmmzgzaT72tvlQ0SOLHVqOzzHt7+x45QnHciSqfvxnTkPYNp
+-FJuTGhtKWV12FfbJczFjivZgg63u/d3eoy2iY0GkCdE98KNS3r3L7tHCGwwgr5Xe
+-T2Nz3BHHnZXYJVEuzcddeocCgYEAnhDjPAHtw2p0Inxlb9kPb6aBC/ECcwtBSUkL
+-IOy/BZA1HPnxs89eNFAtmwQ8k2o6lXDDSJTJSuZj5CdGVKfuU8aOUJz/Tm2eudxL
+-A/+jLJhJyCBthhcJyx3m04E4CAr+5ytyKeP9qXPMvoghcNg66/UabuKYV+CU+feX
+-8xUa7NkCgYEAlX8HGvWMmiG+ZRFB//3Loy87bBxGlN0pUtCEScabZxdB2HkI9Vp7
+-Yr67QIZ3y7T88Mhkwam54JCjiV+3TZbSyRMOjkqf7UhTCZC6hHNqdUnlpv4bJWeW
+-i5Eun8ltYxBnemNc2QGxA4r+KCspi+pRvWNGzL3PFVBGXiLsmOMul78=
+------END RSA PRIVATE KEY-----
+diff --git a/image/insecure_key.ppk b/image/insecure_key.ppk
+deleted file mode 100644
+index 9e0ab1c..0000000
+--- a/image/insecure_key.ppk
++++ /dev/null
+@@ -1,26 +0,0 @@
+-PuTTY-User-Key-File-2: ssh-rsa
+-Encryption: none
+-Comment: imported-openssh-key
+-Public-Lines: 6
+-AAAAB3NzaC1yc2EAAAADAQABAAABAQDVmzBG5v7cO9IScGLIzlhGlHNFhXzy87Vf
+-aPzru7qnIIdQ1e9FEKvtqEws8hVixnCUdviwX5lvcMk4Ef4Tbrmj3dyF0zFtYbji
+-TSyl/XQlF68DQlc2sTAdHy96wJHvh7ky511tKJzzyWwSqeef4WjeVK28TqcGnq1u
+-p0S7saFO0dJh6OfDAg2cDmhyweR3VgT0vZJyrDV7hte95MBCdK+Gp7fdCyEZcWm3
+-S1DBFaeBqHzzt/Y/njAVKbYL9TIVPum8iMg0rMiLi9ShfP+dT5Xud5Oa3dcN2OWh
+-iDfJw5pfhFJWd44cJ/uGRwQpvNs/PNKsYABhgLlTMUH4iawhu1Xb
+-Private-Lines: 14
+-AAABAQCjROxgtX2Gft7yIx8Ol9IXmK6HLCI2XZt7ovb3hFWGGzHy0qMBql2P2Tzo
+-ed1o038Hq+woe9n+uTnEdtQ6rD6PByzgyW2VSsWTjCOdeJ5HH9Qw7ItXDZZWHBkh
+-fYHOkXI4e2oI3qshGAtYNLALn7KVhioJriCyyaSM2KOLx5khcY+EJ1inQfwQJKqP
+-GsdKc72liz07T8ifRj+mNLKtwrxlK3IXYfIdgLp/1pCKdrC80DhprMsD4xvNgq4p
+-CR9jd4FoqM9t/Up5ppTm+p6A/bDwdIPh6cFFeyMP+G3+bTlW1Gg7RLoNCc6qh53W
+-WVgEOQqdLHcQ8Ge4RLmbwLUmnRuRAAAAgQD312H46T2YvKzyEKbsddwbO8WktfxW
+-vVqqxH6z6bRXVFR3hQhmPKjlFXsD74h3W7NJwe9WJ5Pf3vemoBWIo0Hak0M1Z6WC
+-OIvBohpOYDzIgdlGHifx2ZiAd47Vsn+mfxjtISdWupl9Fw98yRjahWosKmmIHTtR
+-cIfYHB9ztpR8owAAAIEA3KNMYMFgenE+7q4pwat4t3RKA7rU8SPto5I1+sEHY8rz
+-cD7ONkIVlEhaqN+uTEYbr5rZa4dsQe4Ia+7ZXmO4djFsAP/fyJX+VCX/bHK83V5H
+-9toTdRLTqqfqJ3GOeZ41kPIN6UDHVEa4S8tfVM0DMNPEHBjLMfdbZGkoBQAPXWkA
+-AACBAJV/Bxr1jJohvmURQf/9y6MvO2wcRpTdKVLQhEnGm2cXQdh5CPVae2K+u0CG
+-d8u0/PDIZMGpueCQo4lft02W0skTDo5Kn+1IUwmQuoRzanVJ5ab+GyVnlouRLp/J
+-bWMQZ3pjXNkBsQOK/igrKYvqUb1jRsy9zxVQRl4i7JjjLpe/
+-Private-MAC: ef1e472b5254ae2c5319a522d39ad31d432dde75
+diff --git a/image/insecure_key.pub b/image/insecure_key.pub
+deleted file mode 100644
+index c938868..0000000
+--- a/image/insecure_key.pub
++++ /dev/null
+@@ -1 +0,0 @@
+-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDVmzBG5v7cO9IScGLIzlhGlHNFhXzy87VfaPzru7qnIIdQ1e9FEKvtqEws8hVixnCUdviwX5lvcMk4Ef4Tbrmj3dyF0zFtYbjiTSyl/XQlF68DQlc2sTAdHy96wJHvh7ky511tKJzzyWwSqeef4WjeVK28TqcGnq1up0S7saFO0dJh6OfDAg2cDmhyweR3VgT0vZJyrDV7hte95MBCdK+Gp7fdCyEZcWm3S1DBFaeBqHzzt/Y/njAVKbYL9TIVPum8iMg0rMiLi9ShfP+dT5Xud5Oa3dcN2OWhiDfJw5pfhFJWd44cJ/uGRwQpvNs/PNKsYABhgLlTMUH4iawhu1Xb baseimage-docker-insecure-key
+diff --git a/image/prepare.sh b/image/prepare.sh
+index a44937b..1715e8b 100755
+--- a/image/prepare.sh
++++ b/image/prepare.sh
+@@ -3,6 +3,12 @@ set -e
+ source /build/buildconfig
+ set -x
+ 
++## Speed up repeat downloads
++$minimal_apt_get_install squid-deb-proxy-client
++echo 'Acquire::http::Proxy "http://squid.trusty.dev.docker:8000/";' > /etc/apt/apt.conf.d/30manualproxy
++#echo 'Acquire::http::Proxy "http://192.168.20.62:8000/";' > /etc/apt/apt.conf.d/30manualproxy
++rm /etc/apt/apt.conf.d/30autoproxy
++
+ ## Enable Ubuntu Universe.
+ echo deb http://archive.ubuntu.com/ubuntu precise main universe > /etc/apt/sources.list
+ echo deb http://archive.ubuntu.com/ubuntu precise-updates main universe >> /etc/apt/sources.list
+@@ -18,7 +24,7 @@ ln -sf /bin/true /sbin/initctl
+ 
+ ## Upgrade all packages.
+ echo "initscripts hold" | dpkg --set-selections
+-apt-get upgrade -y --no-install-recommends
++apt-get dist-upgrade -y --no-install-recommends
+ 
+ ## Fix locale.
+ $minimal_apt_get_install language-pack-en
+diff --git a/image/system_services.sh b/image/system_services.sh
+index af3f5e5..8bf0142 100755
+--- a/image/system_services.sh
++++ b/image/system_services.sh
+@@ -37,11 +37,10 @@ cp /build/00_regen_ssh_host_keys.sh /etc/my_init.d/
+ mkdir -p /root/.ssh
+ chmod 700 /root/.ssh
+ chown root:root /root/.ssh
+-cp /build/insecure_key.pub /etc/insecure_key.pub
+-cp /build/insecure_key /etc/insecure_key
+-chmod 644 /etc/insecure_key*
+-chown root:root /etc/insecure_key*
+-cp /build/enable_insecure_key /usr/sbin/
++cp /build/id_rsa.pub /etc/kbarrett_key.pub
++chmod 644 /etc/kbarrett_key.pub
++chown root:root /etc/kbarrett_key.pub
++cp /build/enable_rsa_key /usr/sbin/
+ 
+ ## Install cron daemon.
+ $minimal_apt_get_install cron
+-- 
+1.9.1
+
