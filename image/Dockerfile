@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM yebyen/ubuntu:trusty
 MAINTAINER Kingdon <yebyen@gmail.com>
 
 ENV HOME /root
