@@ -1,5 +1,5 @@
-NAME = phusion/baseimage
-VERSION = 0.9.13
+NAME = yebyen/baseimage
+VERSION = armhf
 
 .PHONY: all build test tag_latest release ssh
 
