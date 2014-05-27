@@ -6,7 +6,7 @@ VERSION = armhf
 all: build
 
 build:
-	docker build -t $(NAME):$(VERSION) --rm image
+	docker build --no-cache -t $(NAME):$(VERSION) --rm image
 
 test:
 	env NAME=$(NAME) VERSION=$(VERSION) ./test/runner.sh
