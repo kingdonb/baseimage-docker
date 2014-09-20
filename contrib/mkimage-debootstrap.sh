@@ -230,48 +230,48 @@ if [ "$justTar" ]; then
 	sudo tar --numeric-owner -caf "$repo" .
 else
 	# create the image (and tag $repo:$suite)
-	sudo tar --numeric-owner -c . | $docker import - $repo:$suite
+	sudo tar --numeric-owner -c . | $docker import - $repo #:$suite
 	
 	# test the image
-	$docker run -i -t $repo:$suite echo success
+	$docker run -i -t $repo echo success
 	
 	if [ -z "$skipDetection" ]; then
 		case "$lsbDist" in
 			Debian)
 				if [ "$suite" = "$debianStable" -o "$suite" = 'stable' ] && [ -r etc/debian_version ]; then
 					# tag latest
-					$docker tag $repo:$suite $repo:latest
+					#$docker tag $repo $repo:latest
 					
 					if [ -r etc/debian_version ]; then
 						# tag the specific debian release version (which is only reasonable to tag on debian stable)
 						ver=$(cat etc/debian_version)
-						$docker tag $repo:$suite $repo:$ver
+						$docker tag $repo $repo:$ver
 					fi
 				fi
 				;;
 			Ubuntu)
 				if [ "$suite" = "$ubuntuLatestLTS" ]; then
 					# tag latest
-					$docker tag $repo:$suite $repo:latest
+					$docker tag $repo $repo:latest
 				fi
 				if [ -r etc/lsb-release ]; then
 					lsbRelease="$(. etc/lsb-release && echo "$DISTRIB_RELEASE")"
 					if [ "$lsbRelease" ]; then
 						# tag specific Ubuntu version number, if available (12.04, etc.)
-						$docker tag $repo:$suite $repo:$lsbRelease
+						$docker tag $repo $repo:$lsbRelease
 					fi
 				fi
 				;;
 			Tanglu)
 				if [ "$suite" = "$tangluLatest" ]; then
 					# tag latest
-					$docker tag $repo:$suite $repo:latest
+					$docker tag $repo $repo:latest
 				fi
 				if [ -r etc/lsb-release ]; then
 					lsbRelease="$(. etc/lsb-release && echo "$DISTRIB_RELEASE")"
 					if [ "$lsbRelease" ]; then
 						# tag specific Tanglu version number, if available (1.0, 2.0, etc.)
-						$docker tag $repo:$suite $repo:$lsbRelease
+						$docker tag $repo $repo:$lsbRelease
 					fi
 				fi
 				;;
@@ -280,7 +280,7 @@ else
 					lsbRelease="$(. etc/lsb-release && echo "$DISTRIB_RELEASE")"
 					if [ "$lsbRelease" ]; then
 						# tag specific SteamOS version number, if available (1.0, 2.0, etc.)
-						$docker tag $repo:$suite $repo:$lsbRelease
+						$docker tag $repo $repo:$lsbRelease
 					fi
 				fi
 				;;
