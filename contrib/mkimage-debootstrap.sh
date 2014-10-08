@@ -3,7 +3,7 @@ set -e
 
 variant='minbase'
 include='iproute,iputils-ping'
-arch='i386' # intentionally undocumented for now
+arch='armhf' # intentionally undocumented for now
 skipDetection=
 strictDebootstrap=
 justTar=
@@ -114,7 +114,7 @@ fi
 # will be filled in later, if [ -z "$skipDetection" ]
 lsbDist=''
 
-target="/tmp/docker-rootfs-debootstrap-$suite-$$-$RANDOM"
+target="/home/yebyen/tmp/docker-rootfs-debootstrap-$suite-$$-$RANDOM"
 
 cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
 returnTo="$(pwd -P)"
