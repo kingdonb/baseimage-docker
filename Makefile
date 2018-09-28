@@ -1,4 +1,4 @@
-NAME = phusion/baseimage
+NAME = kingdonb/baseimage
 VERSION = 0.11
 
 .PHONY: all build test tag_latest release ssh
